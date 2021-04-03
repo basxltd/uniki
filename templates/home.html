@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<center>
+
+    <div style="margin-bottom: 3rem">
+    <form action="/genkey" method="POST">
+        <button type="submit">Generate new key</button>
+    </form>
+    </div>
+
+    <div>
+    <div style="margin-bottom: 3rem">{{ date }}</div>
+    {% for key in keys %}
+        <div style="display: flex; justify-content: center">
+            <a href="/showkey/{{ key["uuid"] }}" style="margin-right: 1rem">{{ uuid2pic(key["uuid"])|safe }}</a> {{ nicetime(key["MAX(used)"]) }}
+        </div>
+    {% endfor %}
+    </div>
+
+</center>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<center style="margin: 4rem">
+    <div title="{{ uses[0]["uuid"] }}">{{ uuid2pic(uses[0]["uuid"], size=128)|safe }}</div>
+
+    <div style="margin-bottom: 3rem">
+        {% if used_already %}
+            Used already today!
+        {% elif too_old %}
+            Too old!
+        {% else %}
+                <form action="/usekey/{{ uses.0.uuid }}" method="POST">
+                    <button type="submit" style="width: 128px">Use now</button>
+                </form>
+        {% endif %}
+    </div>
+
+    <div style="margin-bottom: 3rem">{{ to_qrcode(request.base_url)|safe }}</div>
+
+    <div style="margin-bottom: 3rem">
+        Used on
+        {% for use in uses %}
+            <div>{{ nicedate(use.used) }}</div>
+        {% endfor %}
+    </div>
+</center>
+
+{% endblock %}
