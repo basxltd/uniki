@@ -46,18 +46,6 @@ def showkey(uuid):
     uses = c.fetchall()
 
     if uses:
-        too_old = False
-        used_already = False
-        if any(u["used"] for u in uses if u["used"]):
-            too_old = (
-                datetime.datetime.now()
-                - datetime.datetime.fromisoformat(
-                    min(u["used"] for u in uses if u["used"])
-                )
-            ).days > MAX_AGE_DAYS
-            used_already = datetime.datetime.fromisoformat(
-                max(u["used"] for u in uses if u["used"])
-            ).date()
         return flask.render_template(
             "showkey.html",
             uses=uses,
@@ -65,8 +53,8 @@ def showkey(uuid):
             nicedate=nicedate,
             nicetime=nicetime,
             uuid2pic=uuid2pic,
-            used_already=used_already,
-            too_old=too_old,
+            used_already=used_already_today(uuid),
+            too_old=too_old(uuid),
         )
     return flask.redirect("/")
 
@@ -76,7 +64,7 @@ def usekey(uuid):
     c = cursor()
     c.execute("SELECT * FROM keys WHERE uuid = ? ORDER BY used DESC", (uuid,))
     result = c.fetchone()
-    if result:
+    if result and not used_already_today(uuid) and not too_old(uuid):
         c.execute(
             "INSERT INTO keys VALUES (?, ?)",
             (uuid, datetime.datetime.now().isoformat()),
@@ -87,6 +75,35 @@ def usekey(uuid):
 
 
 # HELPERS ----------------------------------------------
+
+
+def used_already_today(uuid):
+    c = cursor()
+    c.execute("SELECT * FROM keys WHERE uuid = ? ORDER BY used DESC", (uuid,))
+    uses = c.fetchall()
+
+    return (
+        any(u["used"] for u in uses if u["used"])
+        and datetime.datetime.fromisoformat(
+            max(u["used"] for u in uses if u["used"])
+        ).date()
+        >= datetime.date.today()
+    )
+
+
+def too_old(uuid):
+    c = cursor()
+    c.execute("SELECT * FROM keys WHERE uuid = ? ORDER BY used DESC", (uuid,))
+    uses = c.fetchall()
+
+    return (
+        any(u["used"] for u in uses if u["used"])
+        and (
+            datetime.datetime.now()
+            - datetime.datetime.fromisoformat(min(u["used"] for u in uses if u["used"]))
+        ).days
+        > MAX_AGE_DAYS
+    )
 
 
 def to_qrcode(data):
