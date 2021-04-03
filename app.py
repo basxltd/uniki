@@ -36,7 +36,7 @@ def genkey():
         (uuid.hex, None),
     )
     c.connection.commit()
-    return flask.redirect(f"/showkey/{uuid}")
+    return flask.redirect(f"/showkey/{uuid.hex}")
 
 
 @app.route("/showkey/<uuid>", methods=["GET"])
@@ -113,7 +113,7 @@ def to_qrcode(data):
     img_data = io.BytesIO()
     qr.make_image(fill_color="black", back_color="white").save(img_data)
     b64data = base64.b64encode(img_data.getvalue()).decode()
-    return f'<a href="data:image/png;base64,{b64data}" download="key.png"><button>QR-Code</button></a>'
+    return f'<a href="data:image/png;base64,{b64data}" download="key.png"><button>Get QR-Code</button></a>'
 
 
 def uuid2pic(uuid, size=32):
