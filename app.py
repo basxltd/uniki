@@ -10,7 +10,7 @@ import qrcode
 
 MAX_AGE_DAYS = 30
 
-app = flask.Flask(__name__)
+application = app = flask.Flask(__name__)
 
 
 @app.route("/", methods=["GET"])
