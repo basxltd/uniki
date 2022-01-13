@@ -115,16 +115,22 @@ def too_old(uuid):
     )
 
 
-def to_qrcode(data):
+def to_qrcode(data, download):
     qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_H)
     qr.add_data(data)
     qr.make()
     img_data = io.BytesIO()
     qr.make_image(fill_color="black", back_color="white").save(img_data)
     b64data = base64.b64encode(img_data.getvalue()).decode()
+    if download:
+        return (
+            f'<a href="data:image/png;base64,{b64data}" '
+            'download="key.png"><button>Get QR-Code</button></a>'
+        )
+
     return (
-        f'<a href="data:image/png;base64,{b64data}" '
-        'download="key.png"><button>Get QR-Code</button></a>'
+        f'<img src="data:image/png;base64,{b64data}" '
+        f"onclick=\"printimg('{b64data}');\"/>"
     )
 
 

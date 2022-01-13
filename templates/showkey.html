@@ -2,6 +2,15 @@
 
 {% block content %}
 
+<script type="text/javascript">
+    function printimg(b64_data) {
+        let imgdata = "data:image/png;base64," + b64_data;
+        var w = window.open("", "");
+        w.document.write("<img src='" + imgdata + "''>");
+        w.print();
+    }
+</script>
+
 <center style="margin: 4rem">
     <div title="{{ uses[0]["uuid"] }}">{{ uuid2pic(uses[0]["uuid"], size=128)|safe }}</div>
 
@@ -17,7 +26,7 @@
         {% endif %}
     </div>
 
-    <div style="margin-bottom: 3rem">{{ to_qrcode(request.base_url)|safe }}</div>
+    <div style="margin-bottom: 3rem">{{ to_qrcode(request.base_url, False)|safe }}</div>
 
     <div style="margin-bottom: 3rem">
         Used on
