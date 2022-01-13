@@ -10,6 +10,7 @@ import qrcode
 
 MAX_AGE_DAYS = 30
 
+
 application = app = flask.Flask(__name__)
 
 
@@ -53,7 +54,7 @@ def showkey(uuid):
             nicedate=nicedate,
             nicetime=nicetime,
             uuid2pic=uuid2pic,
-            used_already=used_already_today(uuid),
+            used_already=used_already(uuid, use_once),
             too_old=too_old(uuid),
         )
     return flask.redirect("/")
@@ -64,7 +65,7 @@ def usekey(uuid):
     c = cursor()
     c.execute("SELECT * FROM keys WHERE uuid = ? ORDER BY used DESC", (uuid,))
     result = c.fetchone()
-    if result and not used_already_today(uuid) and not too_old(uuid):
+    if result and not used_already(uuid, use_once) and not too_old(uuid):
         c.execute(
             "INSERT INTO keys VALUES (?, ?)",
             (uuid, datetime.datetime.now().isoformat()),
@@ -74,14 +75,8 @@ def usekey(uuid):
     return flask.redirect("/")
 
 
-# HELPERS ----------------------------------------------
-
-
-def used_already_today(uuid):
-    c = cursor()
-    c.execute("SELECT * FROM keys WHERE uuid = ? ORDER BY used DESC", (uuid,))
-    uses = c.fetchall()
-
+# CHECK FUNCTIONS
+def use_once_per_day(uses):
     return (
         any(u["used"] for u in uses if u["used"])
         and datetime.datetime.fromisoformat(
@@ -89,6 +84,20 @@ def used_already_today(uuid):
         ).date()
         >= datetime.date.today()
     )
+
+
+def use_once(uses):
+    return any(u["used"] for u in uses if u["used"])
+
+
+# HELPERS ----------------------------------------------
+
+
+def used_already(uuid, check_func):
+    c = cursor()
+    c.execute("SELECT * FROM keys WHERE uuid = ? ORDER BY used DESC", (uuid,))
+    uses = c.fetchall()
+    return check_func(uses)
 
 
 def too_old(uuid):
@@ -113,7 +122,10 @@ def to_qrcode(data):
     img_data = io.BytesIO()
     qr.make_image(fill_color="black", back_color="white").save(img_data)
     b64data = base64.b64encode(img_data.getvalue()).decode()
-    return f'<a href="data:image/png;base64,{b64data}" download="key.png"><button>Get QR-Code</button></a>'
+    return (
+        f'<a href="data:image/png;base64,{b64data}" '
+        'download="key.png"><button>Get QR-Code</button></a>'
+    )
 
 
 def uuid2pic(uuid, size=32):
